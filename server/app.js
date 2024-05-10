@@ -26,7 +26,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Папка для сохранения загруженных изображений
-console.log("dirname: ", __dirname)
 const uploadDir = path.join(__dirname, 'uploads');
 app.use(express.static(uploadDir));
 
@@ -45,7 +44,6 @@ const upload = multer({ storage: storage });
 // Роутер для загрузки изображений
 app.post('/upload', upload.array('images', 5), (req, res) => {
     // Пути к загруженным файлам
-    console.log('images', req.files.map(file => file.filename))
     const imagePaths = req.files.map(file => file.filename);
     res.json({ imagePaths: imagePaths });
 });

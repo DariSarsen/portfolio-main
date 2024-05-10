@@ -1,28 +1,56 @@
 const express = require('express');
 const router = express.Router();
 const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
 
-const {user, password} = require('../credentials');
+const {secretKey} = require('../credentials');
+const User = require('../models/user');
 
 router.use(bodyParser.json());
 
+router.post('/login', async (req, res) => {
+  try {
+    const { login, password } = req.body;
+    const user = await User.findOne({ login });
+    if (!user) {
+      return res.status(401).json({ message: 'Оnly the admin has permission' });
+    }
+    // Проверка на временную блокировку аккаунта
+    if (user.blockedUntil && user.blockedUntil > new Date()) {
+      return res.status(401).json({ message: `Account is blocked until ${user.blockedUntil}` });
+    }
 
-const adminCredentials = {
-  login: user,
-  password: password
-};
+    let loginAttempts = user.loginAttempts + 1;
+    const maxLoginAttempts = 5;
+    const lockoutTimeInMinutes = 5;
 
-router.post('/register', (req, res) => {
-  const { login, password } = req.body;
-
-  // Сравниваем введенные данные с данными администратора
-  if (login === adminCredentials.login && password === adminCredentials.password) {
-    // Отправляем ответ в формате JSON
-    res.json({ message: 'Добро пожаловать, Администратор!' });
-  } else {
-    // Отправляем ошибку в формате JSON
-    res.status(401).json({ error: 'Доступ запрещен: неверные учетные данные.' });
+    // Сравниваем введенные данные с данными администратора
+    if (password === user.password) {
+      await User.findByIdAndUpdate(user._id, { loginAttempts: 0, blockedUntil: null });
+      
+      // Создание JWT токена и отправка ответа
+      const token = jwt.sign({ userId: user._id}, secretKey, { expiresIn: '1h' });
+    
+      // Отправляем ответ в формате JSON
+      res.status(200).json({ message: 'Login successful. Hello, Darina Sarsenova', token});
+    } else {
+      
+      if (loginAttempts >= maxLoginAttempts) {
+        const blockedUntil = new Date();
+        blockedUntil.setSeconds(blockedUntil.getSeconds() + lockoutTimeInMinutes);
+        await User.findByIdAndUpdate(user._id, { loginAttempts: 0, blockedUntil });
+        // Отправляем ошибку в формате JSON
+        return res.status(401).json({ message: `Too many login attempts. Account is blocked until ${blockedUntil}` });
+      }else {
+        await User.findByIdAndUpdate(user._id, { loginAttempts });
+      }
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
   }
+
 });
 
 module.exports = router;

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const dburl = require('../credentials');
+const {dburl} = require('../credentials');
 
 
 const connectDB = async () => {
