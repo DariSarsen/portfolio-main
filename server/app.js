@@ -5,6 +5,7 @@ const http = require('http');
 const connectDB = require('./config/db'); 
 const projectRoutes = require('./routes/projectRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const mailRouter = require('./routes/emailRoutes');
 const multer = require('multer');
 const path = require('path');
 
@@ -52,6 +53,8 @@ app.post('/upload', upload.array('images', 5), (req, res) => {
 // Routes
 app.use('/projects', projectRoutes);
 app.use('/admin', adminRoutes);
+app.use('/send-email', mailRouter);
+
 
 // Запуск сервера
 const server = http.createServer(app);
