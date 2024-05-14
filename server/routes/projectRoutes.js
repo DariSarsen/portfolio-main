@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Project = require('../models/project');
+const authenticateToken = require('../middleware/authenticateToken');
 
 router.get('/', async (req, res) => {
     try {
@@ -12,7 +13,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateToken, async (req, res) => {
     try {
         const project = await Project.findById(req.params.id);
         if (project) {
@@ -25,7 +26,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
     const { title, subtitle, description, imageUrls } = req.body;
     try {
         const newProject = new Project({
@@ -41,7 +42,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', authenticateToken, async (req, res) => {
     try {
         const updateProject = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (updateProject) {
@@ -54,7 +55,7 @@ router.patch('/:id', async (req, res) => {
     }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
     try {
         const result = await Project.findByIdAndDelete(req.params.id);
         if (result) {

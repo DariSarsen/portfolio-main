@@ -8,6 +8,10 @@ const adminRoutes = require('./routes/adminRoutes');
 const mailRouter = require('./routes/emailRoutes');
 const multer = require('multer');
 const path = require('path');
+const {secretKey} = require('./credentials');
+
+const session = require('express-session');
+
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -17,6 +21,12 @@ connectDB();
 
 app.use(express.json());
 app.use(morgan('dev'));
+
+app.use(session({
+  secret: secretKey, // Секретный ключ для подписи сессий
+  resave: false,
+  saveUninitialized: true
+}));
 
 const corsOptions = {
   origin: ['http://localhost:4200'],
