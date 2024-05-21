@@ -10,8 +10,8 @@ router.use(bodyParser.json());
 
 router.post('/login', async (req, res) => {
   try {
-    const { login, password } = req.body;
-    const user = await User.findOne({ login });
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: 'Оnly the admin has permission' });
     }
@@ -30,7 +30,9 @@ router.post('/login', async (req, res) => {
       
       // Создание JWT токена и отправка ответа
       const token = jwt.sign({ userId: user._id}, secretKey, { expiresIn: '1h' });
-    
+      req.session.token = token;
+      console.log(req.session);
+
       // Отправляем ответ в формате JSON
       res.status(200).json({ message: 'Login successful. Hello, Darina Sarsenova', token});
     } else {

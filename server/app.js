@@ -23,15 +23,16 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 app.use(session({
-  secret: secretKey, // Секретный ключ для подписи сессий
+  secret: secretKey, 
   resave: false,
-  saveUninitialized: true
+  saveUninitialized: false,
+  cookie: { }
 }));
 
 const corsOptions = {
   origin: ['http://localhost:4200'],
   methods: "*",
-  allowedHeaders: ["Content-Type"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true 
 };
 app.use(cors(corsOptions));
